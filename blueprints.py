@@ -14,6 +14,7 @@ from flask import (
     send_file,
 )
 from PIL import Image
+from werkzeug.datastructures import FileStorage
 
 from database import (
     get_all_resources,
@@ -23,6 +24,7 @@ from database import (
     upload_resource_metadata,
 )
 from entities import ResourceFile, ResourceMetadata
+from utils import IMAGE_FORMAT_MAPPING, MIMETYPE_MAPPING, downscale_image
 
 TMP_FOLDER = "/tmp/farewell"
 
@@ -46,12 +48,8 @@ def blueprint_get_resource_file():
     image_stream = BytesIO(image_data)
     file_name = image_metadata["file_name"]
     file_ending = file_name.split(".")[-1]
-    mimetype_mapping = {
-        "png": "image/png",
-        "jpg": "image/jpeg",
-        "jpeg": "image/jpeg",
-    }
-    mimetype = mimetype_mapping[file_ending]
+
+    mimetype = MIMETYPE_MAPPING[file_ending]
     return send_file(image_stream, mimetype=mimetype, download_name="image.png")
 
 
@@ -65,7 +63,6 @@ def uploader():
         inputs = {
             "file": request.files["file"],
             "file_name": request.files["file"].filename,
-            # "password": request.form.get("password"),
             "creation_date": creation_date,
             "title": request.form.get("title"),
             "caption": request.form.get("caption"),
@@ -74,7 +71,6 @@ def uploader():
 
         required = [
             "file",
-            # "password",
             "creation_date",
             "title",
             "uploaded_by",
@@ -94,23 +90,35 @@ def uploader():
             inputs["uploaded_by"],
         )
 
-        file_resource = ResourceFile(uuid=resource_metadata.uuid, file=inputs["file"])
+        image_file = inputs["file"]
+
+        try:
+            img = Image.open(image_file)
+            if img.size[0] > 1920 or img.size[1] > 1920:
+                downscaled_img = downscale_image(img)
+                image_io = BytesIO()
+
+                file_name = request.files["file"].filename
+                file_ending = file_name.split(".")[1]
+                image_format = IMAGE_FORMAT_MAPPING[file_ending]
+                mimetype = MIMETYPE_MAPPING[file_ending]
+
+                downscaled_img.save(image_io, format=image_format)
+                image_io.seek(0)  # Reset the BytesIO position to the beginning
+                image_file = FileStorage(
+                    stream=image_io,
+                    filename=file_name,
+                    content_type=mimetype,
+                )
+        except Exception as e:
+            print(e, file=sys.stderr)
+
+        file_resource = ResourceFile(uuid=resource_metadata.uuid, file=image_file)
 
         metadata_result = upload_resource_metadata(resource_metadata)
         store_file(file_resource)
 
         return metadata_result
 
-        # Perform necessary operations with the form data (e.g., save to database, process image, etc.)
-
-        # For demonstration purposes, let's just print the information
-        print(f"File: {uploaded_file.filename}")
-        print(f"Title: {title}")
-        print(f"Caption: {caption}")
-        print(f"Uploaded by: {uploaded_by}")
-
-        # You can redirect to another page or render a success message
-        return "Form submitted successfully!"
-
-    # If it's a GET request, render the form
+    # If it's a GET request, render the uploader html page
     return render_template("uploader.html")
