@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uploader</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+</head>
+
+<body>
+    <article class="card">
+        <form method="post" enctype="multipart/form-data">
+            <header>
+                <h3>Bild Upload</h3>
+            </header>
+
+            <label for="file">Bild auswählen:</label>
+            <div style="max-height: 50% "> <!-- this div just for demo display -->
+                <label class="dropimage">
+                    <input title="Bild hier auswählen." type="file" name="file">
+                </label>
+            </div>
+            <br>
+
+            <label for="title">Titel:</label>
+            <input type="text" name="title" required>
+            <br>
+
+            <label for="caption">Bildunterschrift (optional):</label>
+            <input type="text" name="caption">
+            <br>
+
+            <label for="uploaded_by">Dein Name:</label>
+            <input type="text" name="uploaded_by" required>
+            <br>
+
+            <label for="creation_date">Bild Datum (wird in der Regel automatisch gefüllt):</label>
+            <input type="text" name="creation_date" required>
+            <br>
+
+            <footer>
+                <button type="submit">Abschicken</button>
+            </footer>
+        </form>
+    </article>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            [].forEach.call(document.querySelectorAll('.dropimage'), function (img) {
+                img.onchange = function (e) {
+                    var inputfile = this, reader = new FileReader();
+                    reader.onloadend = function () {
+                        inputfile.style['background-image'] = 'url(' + reader.result + ')';
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get the file input element
+            var fileInput = document.querySelector('input[name="file"]');
+
+            // Get the creation date input element
+            var creationDateInput = document.querySelector('input[name="creation_date"]');
+
+            // Add an event listener for the file input change event
+            fileInput.addEventListener('change', function (event) {
+                creationDateInput.value = "";
+                // Get the selected file
+                var selectedFile = event.target.files[0];
+
+                if (!selectedFile || !selectedFile.type.startsWith('image/')) throw new Error("The file has to be an image file!");
+
+                var creationDate = getCDateFromEXIF(selectedFile);
+                if (!creationDate) {
+                    creationDate = extractCDateFromFilename(selectedFile.name);
+                } else {
+                    console.log("Found creation date in EXIF data.")
+                }
+                if (!creationDate) {
+                    creationDate = new Date(selectedFile.lastModified);
+                    console.log("Found creation date in mtime.");
+                } else {
+                    console.log("Found creation date in filename.")
+                }
+
+                creationDateInput.value = dateToGermanFormat(creationDate);
+
+            });
+
+            function getCDateFromEXIF(selectedFile) {
+                // Use exif.js to read EXIF data
+                EXIF.getData(selectedFile, function () {
+                    var exifDate = EXIF.getTag(this, "DateTimeOriginal");
+                    if (exifDate) {
+                        const year = exifDate.substr(0, 4);
+                        const month = exifDate.substr(5, 2);
+                        const day = exifDate.substr(8, 2);
+
+                        return new Date(year + "-" + month + "-" + day);
+                    }
+                });
+                // Return null if no EXIF date is found
+                return null;
+            }
+
+            function extractCDateFromFilename(filename) {
+                // Define the regular expression pattern
+                const regex = /IMG-(\d{8})/;
+
+                // Use the exec method to match the pattern against the filename
+                const match = regex.exec(filename);
+
+                // Check if there is a match
+                if (match && match[1]) {
+                    // Extracted date in the format YYYYMMDD
+                    const dateStr = match[1];
+                    // Parse the date string into a JavaScript Date object
+                    const year = dateStr.substr(0, 4);
+                    const month = dateStr.substr(4, 2);
+                    const day = dateStr.substr(6, 2);
+
+                    console.log(year + "-" + month + "-" + day);
+
+                    return new Date(year + "-" + month + "-" + day);
+                } else {
+                    // Return null if no match is found
+                    return null;
+                }
+            }
+
+
+            function dateToGermanFormat(date) {
+                var dateStr = date.toISOString().split("T")[0];
+                const year = dateStr.substr(0, 4);
+                const month = dateStr.substr(5, 2);
+                const day = dateStr.substr(8, 2);
+                return day + "." + month + "." + year
+            }
+
+        });
+    </script>
+
+</body>
+
+</html>

@@ -9,12 +9,13 @@ from utils import calculate_unlock_date
 
 
 class ResourceMetadata:
-    def __init__(self, file_name: str, creation_date: date, caption: str, uploaded_by: str):
+    def __init__(self, file_name: str, creation_date: date, title: str, caption: str, uploaded_by: str):
         self.uuid = uuid1()
         self.file_name = file_name
         self.creation_date = creation_date
         leave_date = date(day=13, month=11, year=2023)
         self.unlock_date = calculate_unlock_date(creation_date, leave_date)
+        self.title = title
         self.caption = caption
         self.uploaded_by = uploaded_by
 
@@ -24,6 +25,7 @@ class ResourceMetadata:
             "file_name": self.file_name,
             "creation_date": self.creation_date.isoformat(),
             "unlock_date": self.unlock_date.isoformat(),
+            "title": self.title,
             "caption": self.caption,
             "uploaded_by": self.uploaded_by,
         }

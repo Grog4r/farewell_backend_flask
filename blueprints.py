@@ -1,9 +1,18 @@
 import base64
+import os
 import sys
 from datetime import datetime
 from io import BytesIO
 
-from flask import Blueprint, Response, current_app, make_response, request, send_file
+from flask import (
+    Blueprint,
+    Response,
+    current_app,
+    make_response,
+    render_template,
+    request,
+    send_file,
+)
 from PIL import Image
 
 from database import (
@@ -14,6 +23,8 @@ from database import (
     upload_resource_metadata,
 )
 from entities import ResourceFile, ResourceMetadata
+
+TMP_FOLDER = "/tmp/farewell"
 
 blueprint_backend = Blueprint("backend", __name__)
 
@@ -44,35 +55,62 @@ def blueprint_get_resource_file():
     return send_file(image_stream, mimetype=mimetype, download_name="image.png")
 
 
-@blueprint_backend.route("/upload", methods=["POST"])
-def blueprint_upload_resource():
-    inputs = {
-        "file": request.files["file"],
-        "file_name": request.files["file"].filename,
-        "password": request.form.get("password"),
-        "creation_date": datetime.strptime(
-            request.form.get("creation_date"), "%Y-%m-%d"
-        ).date(),
-        "caption": request.form.get("caption"),
-        "uploaded_by": request.form.get("uploaded_by"),
-    }
+@blueprint_backend.route("/uploader", methods=["GET", "POST"])
+def uploader():
+    if request.method == "POST":
+        creation_date = datetime.strptime(
+            request.form.get("creation_date"), "%d.%m.%Y"
+        ).date()
 
-    print(inputs, file=sys.stderr)
+        inputs = {
+            "file": request.files["file"],
+            "file_name": request.files["file"].filename,
+            # "password": request.form.get("password"),
+            "creation_date": creation_date,
+            "title": request.form.get("title"),
+            "caption": request.form.get("caption"),
+            "uploaded_by": request.form.get("uploaded_by"),
+        }
 
-    for key, value in inputs.items():
-        if value is None:
-            raise ValueError(f"The form parameter '{key}' must be provided.")
+        required = [
+            "file",
+            # "password",
+            "creation_date",
+            "title",
+            "uploaded_by",
+        ]
 
-    resource_metadata = ResourceMetadata(
-        inputs["file_name"],
-        inputs["creation_date"],
-        inputs["caption"],
-        inputs["uploaded_by"],
-    )
+        print(inputs, file=sys.stderr)
 
-    file_resource = ResourceFile(uuid=resource_metadata.uuid, file=inputs["file"])
+        for key in required:
+            if not inputs[key]:
+                raise ValueError(f"The form parameter '{key}' must be provided.")
 
-    metadata_result = upload_resource_metadata(resource_metadata)
-    store_file(file_resource)
+        resource_metadata = ResourceMetadata(
+            inputs["file_name"],
+            inputs["creation_date"],
+            inputs["title"],
+            inputs["caption"],
+            inputs["uploaded_by"],
+        )
 
-    return metadata_result
+        file_resource = ResourceFile(uuid=resource_metadata.uuid, file=inputs["file"])
+
+        metadata_result = upload_resource_metadata(resource_metadata)
+        store_file(file_resource)
+
+        return metadata_result
+
+        # Perform necessary operations with the form data (e.g., save to database, process image, etc.)
+
+        # For demonstration purposes, let's just print the information
+        print(f"File: {uploaded_file.filename}")
+        print(f"Title: {title}")
+        print(f"Caption: {caption}")
+        print(f"Uploaded by: {uploaded_by}")
+
+        # You can redirect to another page or render a success message
+        return "Form submitted successfully!"
+
+    # If it's a GET request, render the form
+    return render_template("uploader.html")
