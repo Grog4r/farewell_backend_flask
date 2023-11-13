@@ -49,7 +49,7 @@ def blueprint_get_resource_file():
     file_name = image_metadata["file_name"]
     file_ending = file_name.split(".")[-1]
 
-    mimetype = MIMETYPE_MAPPING[file_ending]
+    mimetype = MIMETYPE_MAPPING[file_ending.lower()]
     return send_file(image_stream, mimetype=mimetype, download_name="image.png")
 
 
@@ -68,6 +68,12 @@ def uploader():
             "caption": request.form.get("caption"),
             "uploaded_by": request.form.get("uploaded_by"),
         }
+
+        if inputs["file_name"].split(".")[1].lower() not in MIMETYPE_MAPPING.keys():
+            return render_template(
+                "uploader.html",
+                result="Bitte verwende nur Bilder im Format PNG oder JPEG! ⚠️",
+            )
 
         required = [
             "file",
@@ -101,7 +107,7 @@ def uploader():
                 file_name = request.files["file"].filename
                 file_ending = file_name.split(".")[1]
                 image_format = IMAGE_FORMAT_MAPPING[file_ending]
-                mimetype = MIMETYPE_MAPPING[file_ending]
+                mimetype = MIMETYPE_MAPPING[file_ending.lower()]
 
                 downscaled_img.save(image_io, format=image_format)
                 image_io.seek(0)  # Reset the BytesIO position to the beginning
@@ -110,15 +116,23 @@ def uploader():
                     filename=file_name,
                     content_type=mimetype,
                 )
+        except KeyError as key_error:
+            print(key_error, file=sys.stderr)
         except Exception as e:
             print(e, file=sys.stderr)
 
         file_resource = ResourceFile(uuid=resource_metadata.uuid, file=image_file)
 
         metadata_result = upload_resource_metadata(resource_metadata)
-        store_file(file_resource)
-
-        return metadata_result
+        metadata_file_result = store_file(file_resource)
+        if metadata_result["uuid"] and metadata_file_result["uuid"]:
+            return render_template(
+                "uploader.html", result="Der Upload war erfolgreich! 🥳"
+            )
+        else:
+            return render_template(
+                "uploader.html", result="Da ist etwas schief gelaufen! 🤯"
+            )
 
     # If it's a GET request, render the uploader html page
-    return render_template("uploader.html")
+    return render_template("uploader.html", result="Uploade ein Bild für Flo! 🖼️")
