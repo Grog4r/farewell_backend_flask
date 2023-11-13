@@ -2,6 +2,7 @@ import traceback
 from typing import Tuple
 
 from flask import Flask
+from flask_basicauth import BasicAuth
 from werkzeug.exceptions import HTTPException
 
 from blueprints import blueprint_backend
@@ -9,6 +10,11 @@ from blueprints import blueprint_backend
 app = Flask(__name__)
 
 app.register_blueprint(blueprint_backend)
+
+app.config["BASIC_AUTH_USERNAME"] = "john"
+app.config["BASIC_AUTH_PASSWORD"] = "matrix"
+app.config["BASIC_AUTH_FORCE"] = True
+basic_auth = BasicAuth(app)
 
 
 @app.errorhandler(HTTPException)
