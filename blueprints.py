@@ -1,14 +1,16 @@
 import base64
 import os
 import sys
-from datetime import datetime
+from datetime import date, datetime
 from io import BytesIO
 
 from flask import (
     Blueprint,
     Response,
     current_app,
+    jsonify,
     make_response,
+    redirect,
     render_template,
     request,
     send_file,
@@ -17,10 +19,12 @@ from PIL import Image
 from werkzeug.datastructures import FileStorage
 
 from database import (
+    delete_image_by_uuid,
     get_all_resources,
     get_resource_file,
     get_resource_metadata,
     store_file,
+    update_resource_metadata,
     upload_resource_metadata,
 )
 from entities import ResourceFile, ResourceMetadata
@@ -143,7 +147,49 @@ def uploader():
     return render_template("uploader.html", result="Uploade ein Bild für Flo! 🖼️")
 
 
-@blueprint_backend.route("/manage", methods=["GET", "POST"])
+@blueprint_backend.route("/manage", methods=["GET"])
 def show_images():
     resources = get_all_resources()
     return render_template("show_images.html", images=resources)
+
+
+@blueprint_backend.route("/edit_image", methods=["GET", "POST"])
+def edit_image(uuid=None):
+    if request.method == "POST":
+        uuid = request.form.get("uuid")
+        title = request.form.get("title")
+        caption = request.form.get("caption")
+        uploaded_by = request.form.get("uploaded_by")
+        creation_date = request.form.get("creation_date")
+        try:
+            creation_date = datetime.strptime(creation_date, "%d.%m.%Y")
+            creation_date = date.strftime(creation_date, "%d.%m.%Y")
+        except Exception as e:
+            return render_template("edit_image.html", image=image_metadata, error=e)
+
+        image_metadata = update_resource_metadata(
+            uuid, title, caption, uploaded_by, creation_date
+        )
+        return redirect("/manage")
+    else:
+        if not uuid:
+            uuid = request.args["uuid"]
+        if not uuid:
+            raise ValueError("Please provide the uuid.")
+
+        image_metadata = get_resource_metadata(uuid)
+        return render_template("edit_image.html", image=image_metadata, error="")
+
+
+@blueprint_backend.route("/delete_image", methods=["DELETE"])
+def delete_image(uuid=None):
+    if not uuid:
+        uuid = request.args["uuid"]
+    if not uuid:
+        raise ValueError("Please provide the uuid.")
+
+    delete_image_by_uuid(uuid)
+
+    response_data = {"message": "Image deleted successfully"}
+
+    return jsonify(response_data), 302, {"Location": "/manage"}

@@ -11,22 +11,38 @@
 </head>
 
 <body>
-    <article class="card" style="margin: 2%;">
-        <form method="post" enctype="multipart/form-data">
-            <header>
-                <h3>Bild Upload</h3>
-                <p>{{result}}</p>
-            </header>
+    <nav class="demo">
+        <a href="#" class="brand">
+            <img class="logo" src="https://cdn-icons-png.flaticon.com/512/2590/2590735.png" />
+            <span>Flos Farewell</span>
+        </a>
 
-            <label for="file">Bild auswählen:</label>
-            <div style="max-height: 50% "> <!-- this div just for demo display -->
+        <!-- responsive-->
+        <input id="bmenub" type="checkbox" class="show">
+        <label for="bmenub" class="burger pseudo button">Menu</label>
+
+        <div class="menu">
+            <a href="/uploader" class="button icon-picture">Bilder uploaden</a>
+            <a href="/manage" class="button icon-puzzle">Bilder ansehen und bearbeiten</a>
+        </div>
+    </nav>
+
+    <div style="padding: 30px;">
+        <h1>Bilder Upload</h1>
+        <h3>{{result}}</h3>
+    </div>
+
+    <article class="card" style="margin: 2%; padding: 2%;">
+        <form method="post" enctype="multipart/form-data">
+            <label for="file"><h1>Bild auswählen:</h1></label>
+            <div style="max-height: 20%; width: auto; "> <!-- this div just for demo display -->
                 <label class="dropimage">
                     <input title="Bild hier auswählen." type="file" name="file">
                 </label>
             </div>
             <br>
 
-            <label for="title">Titel:</label>
+            <label for="title"><b>Titel:</b></label>
             <input type="text" name="title" required>
             <br>
 
@@ -38,7 +54,7 @@
             <input type="text" name="uploaded_by" required>
             <br>
 
-            <label for="creation_date">Bild Datum (wird in der Regel automatisch gefüllt):</label>
+            <label for="creation_date">Aufnahmedatum (wird in der Regel automatisch gefunden):</label>
             <input type="text" name="creation_date" required>
             <br>
 

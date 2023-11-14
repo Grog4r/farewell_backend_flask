@@ -1,25 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Images</title>
+    <title>Alle Bilder</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
 </head>
 
 <body>
-    <h1>Images</h1>
-    <ul>
-        {% for image in images %}
-        <li>
-            <h3>{{ image['title'] }}</h3>
-            <p>{{ image['caption'] }}</p>
-            <p>Date: {{ image['creation_date'] }}</p>
-            <p>Name: {{ image['uploaded_by'] }}</p>
-            <img src="{{ url_for('backend.blueprint_get_resource_file', uuid=image['uuid']) }}" alt="{{ image["title"]}}">
-        </li>
-        {% endfor %}
-    </ul>
+    <nav class="demo">
+        <a href="#" class="brand">
+            <img class="logo" src="https://cdn-icons-png.flaticon.com/512/2590/2590735.png" />
+            <span>Flos Farewell</span>
+        </a>
+
+        <!-- responsive-->
+        <input id="bmenub" type="checkbox" class="show">
+        <label for="bmenub" class="burger pseudo button">Menu</label>
+
+        <div class="menu">
+            <a href="/uploader" class="button icon-picture">Bilder uploaden</a>
+            <a href="/manage" class="button icon-puzzle">Bilder ansehen und bearbeiten</a>
+        </div>
+    </nav>
+
+    <div style="padding: 30px;">
+        <h1>Alle Bilder</h1>
+    </div>
+
+    {% for image in images %}
+    <article class="card" style="margin: 2%; padding: 2%;">
+        <header>
+            <h1>{{ image['title'] }}</h1>
+        </header>
+        <div>
+            <img src="{{ url_for('backend.blueprint_get_resource_file', uuid=image['uuid']) }}" alt="{{ image["
+                title"]}}" style="max-height:100%; max-width:100%;">
+        </div>
+        <footer>
+            <p><b>Bildunterschrift:</b> {{ image['caption'] }}</p>
+            <p><b>Aufnahmedatum:</b> {{ image['creation_date'] }}</p>
+            <p><b>Hochgeladen von:</b> {{ image['uploaded_by'] }}</p>
+            <button onclick="editImage('{{ image.uuid }}')">Bild bearbeiten</button>
+        </footer>
+    </article>
+    {% endfor %}
 </body>
+
+<script>
+    function editImage(uuid) {
+        // Redirect to the /edit_image?uuid=uuid
+        window.location.href = '/edit_image?uuid=' + uuid;
+    }
+</script>
 
 </html>

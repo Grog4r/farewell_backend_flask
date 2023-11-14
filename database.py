@@ -1,5 +1,6 @@
 import base64
 import json
+import sys
 
 import bson
 import pymongo
@@ -52,6 +53,30 @@ def get_resource_metadata(uuid: str):
     results = db["resource_metadata"].find(query)
     for result in results:
         return result
+
+
+def update_resource_metadata(
+    uuid: str, title: str, caption: str, uploaded_by: str, creation_date: str
+):
+    query = {"uuid": uuid}
+    return db["resource_metadata"].update_one(
+        query,
+        update={
+            "$set": {
+                "title": title,
+                "caption": caption,
+                "uploaded_by": uploaded_by,
+                "creation_date": creation_date,
+            }
+        },
+    )
+
+
+def delete_image_by_uuid(uuid: str):
+    query = {"uuid": uuid}
+    db["resource_metadata"].delete_one(query)
+    db["resource_files"].delete_one(query)
+    print(f"Deleted image {uuid}", file=sys.stderr)
 
 
 def parse_json(data):
