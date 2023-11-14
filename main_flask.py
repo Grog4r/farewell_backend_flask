@@ -3,11 +3,13 @@ from typing import Tuple
 
 from flask import Flask
 from flask_basicauth import BasicAuth
+from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
 
 from blueprints import blueprint_backend
 
 app = Flask(__name__)
+CORS(app)
 
 app.register_blueprint(blueprint_backend)
 
