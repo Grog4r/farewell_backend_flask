@@ -24,7 +24,7 @@ from database import (
     upload_resource_metadata,
 )
 from entities import ResourceFile, ResourceMetadata
-from utils import IMAGE_FORMAT_MAPPING, MIMETYPE_MAPPING, downscale_image
+from utils import IMAGE_FORMAT_MAPPING, MIMETYPE_MAPPING, thumbnail_image
 
 TMP_FOLDER = "/tmp/farewell"
 
@@ -37,11 +37,13 @@ def blueprint_get_all_available_resources():
 
 
 @blueprint_backend.route("/resource", methods=["GET"])
-def blueprint_get_resource_file():
-    uuid = request.args["uuid"]
+def blueprint_get_resource_file(uuid=None):
+    if not uuid:
+        uuid = request.args["uuid"]
     if not uuid:
         raise ValueError("Please provide the uuid.")
     image_data = get_resource_file(uuid)
+    print(len(image_data), file=sys.stderr)
     if not image_data:
         raise FileNotFoundError(f"The file with uuid {uuid} does not exist.")
     image_metadata = get_resource_metadata(uuid)
@@ -50,7 +52,8 @@ def blueprint_get_resource_file():
     file_ending = file_name.split(".")[-1]
 
     mimetype = MIMETYPE_MAPPING[file_ending.lower()]
-    return send_file(image_stream, mimetype=mimetype, download_name="image.png")
+    print(f"{file_name}: {mimetype}", file=sys.stderr)
+    return send_file(image_stream, mimetype=mimetype, download_name=file_name)
 
 
 @blueprint_backend.route("/uploader", methods=["GET", "POST"])
@@ -100,22 +103,24 @@ def uploader():
 
         try:
             img = Image.open(image_file)
-            if img.size[0] > 1920 or img.size[1] > 1920:
-                downscaled_img = downscale_image(img)
-                image_io = BytesIO()
+            downscaled_img = thumbnail_image(img)
+            image_io = BytesIO()
 
-                file_name = request.files["file"].filename
-                file_ending = file_name.split(".")[1]
-                image_format = IMAGE_FORMAT_MAPPING[file_ending]
-                mimetype = MIMETYPE_MAPPING[file_ending.lower()]
+            file_name = request.files["file"].filename
+            file_ending = file_name.split(".")[1]
+            image_format = IMAGE_FORMAT_MAPPING[file_ending]
+            mimetype = MIMETYPE_MAPPING[file_ending.lower()]
 
-                downscaled_img.save(image_io, format=image_format)
-                image_io.seek(0)  # Reset the BytesIO position to the beginning
-                image_file = FileStorage(
-                    stream=image_io,
-                    filename=file_name,
-                    content_type=mimetype,
-                )
+            print(
+                f"Saving img {file_name}: {image_format}, {mimetype}", file=sys.stderr
+            )
+            downscaled_img.save(image_io, format=image_format)
+            image_io.seek(0)  # Reset the BytesIO position to the beginning
+            image_file = FileStorage(
+                stream=image_io,
+                filename=file_name,
+                content_type=mimetype,
+            )
         except KeyError as key_error:
             print(key_error, file=sys.stderr)
         except Exception as e:
@@ -136,3 +141,9 @@ def uploader():
 
     # If it's a GET request, render the uploader html page
     return render_template("uploader.html", result="Uploade ein Bild für Flo! 🖼️")
+
+
+@blueprint_backend.route("/manage", methods=["GET", "POST"])
+def show_images():
+    resources = get_all_resources()
+    return render_template("show_images.html", images=resources)

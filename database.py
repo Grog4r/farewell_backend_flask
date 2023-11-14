@@ -37,7 +37,6 @@ def get_all_resources():
         json_res = parse_json(res)
         del json_res["_id"]
         return_list.append(json_res)
-    print(res, json_res)
     return return_list
 
 
