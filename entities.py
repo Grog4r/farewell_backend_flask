@@ -30,7 +30,7 @@ class ResourceMetadata:
         return {
             "uuid": str(self.uuid),
             "file_name": self.file_name,
-            "creation_date": date.strftime(self.creation_date, "%d.%m.%Y"),
+            "creation_date": self.creation_date.isoformat(),
             "unlock_date": self.unlock_date.isoformat(),
             "title": self.title,
             "caption": self.caption,
