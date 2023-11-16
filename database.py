@@ -1,6 +1,7 @@
 import base64
 import json
 import sys
+from datetime import date
 
 import bson
 import pymongo
@@ -10,6 +11,7 @@ from flask import send_file
 from werkzeug.datastructures import FileStorage
 
 from entities import ResourceFile, ResourceMetadata
+from utils import calculate_unlock_date
 
 client = pymongo.MongoClient("mongodb://your_username:your_password@mongodb:27017/")
 
@@ -56,8 +58,9 @@ def get_resource_metadata(uuid: str):
 
 
 def update_resource_metadata(
-    uuid: str, title: str, caption: str, uploaded_by: str, creation_date: str
+    uuid: str, title: str, caption: str, uploaded_by: str, creation_date: date
 ):
+    leave_date = date(day=13, month=11, year=2023)
     query = {"uuid": uuid}
     return db["resource_metadata"].update_one(
         query,
@@ -66,7 +69,8 @@ def update_resource_metadata(
                 "title": title,
                 "caption": caption,
                 "uploaded_by": uploaded_by,
-                "creation_date": creation_date,
+                "creation_date": creation_date.isoformat(),
+                "unlock_date": calculate_unlock_date(creation_date, leave_date).isoformat(),
             }
         },
     )

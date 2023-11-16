@@ -162,9 +162,9 @@ def edit_image(uuid=None):
         uploaded_by = request.form.get("uploaded_by")
         creation_date = request.form.get("creation_date")
         try:
-            creation_date = datetime.strptime(creation_date, "%d.%m.%Y")
-            creation_date = date.strftime(creation_date, "%d.%m.%Y")
+            creation_date = datetime.fromisoformat(creation_date).date()
         except Exception as e:
+            image_metadata = get_resource_metadata(uuid)
             return render_template("edit_image.html", image=image_metadata, error=e)
 
         image_metadata = update_resource_metadata(
