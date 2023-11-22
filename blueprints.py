@@ -23,6 +23,7 @@ from database import (
     get_all_resources,
     get_resource_file,
     get_resource_metadata,
+    get_resource_metadata_json,
     store_file,
     update_resource_metadata,
     upload_resource_metadata,
@@ -38,6 +39,19 @@ blueprint_backend = Blueprint("backend", __name__)
 @blueprint_backend.route("/", methods=["GET"])
 def blueprint_get_all_available_resources():
     return get_all_resources()
+
+
+@blueprint_backend.route("/meta", methods=["GET"])
+def blueprint_get_resource_meta(uuid=None):
+    if not uuid:
+        uuid = request.args["uuid"]
+    if not uuid:
+        raise ValueError("Please provide the uuid.")
+    meta = get_resource_metadata_json(uuid)
+    if not meta:
+        raise FileNotFoundError(f"The meta with uuid {uuid} does not exist.")
+
+    return meta
 
 
 @blueprint_backend.route("/resource", methods=["GET"])

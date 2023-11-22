@@ -57,6 +57,15 @@ def get_resource_metadata(uuid: str):
         return result
 
 
+def get_resource_metadata_json(uuid: str):
+    query = {"uuid": uuid}
+    result = db["resource_metadata"].find_one(query)
+    json_res = parse_json(result)
+    del json_res["_id"]
+    
+    return json_res
+
+
 def update_resource_metadata(
     uuid: str, title: str, caption: str, uploaded_by: str, creation_date: date
 ):
