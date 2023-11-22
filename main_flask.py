@@ -13,10 +13,13 @@ CORS(app)
 
 app.register_blueprint(blueprint_backend)
 
-app.config["BASIC_AUTH_USERNAME"] = "john"
-app.config["BASIC_AUTH_PASSWORD"] = "matrix"
-app.config["BASIC_AUTH_FORCE"] = True
-basic_auth = BasicAuth(app)
+enable_basic_auth = False
+
+if enable_basic_auth:
+    app.config["BASIC_AUTH_USERNAME"] = "john"
+    app.config["BASIC_AUTH_PASSWORD"] = "matrix"
+    app.config["BASIC_AUTH_FORCE"] = True
+    basic_auth = BasicAuth(app)
 
 
 @app.errorhandler(HTTPException)
