@@ -20,14 +20,6 @@ sudo docker compose build --no-cache && sudo docker compose up
 
 ## Usage
 
-### Frontend
-
-For uploading images you will need to access `http://127.0.0.1:8000/uploader`.
-
-For managing uploaded images you will need to access `http://127.0.0.1:8000/manage`.
-
-The username and password are currently `john` and `matrix`.
-
 ### Uploading and Managing Images
 
 For uploading images you can access the endpoint `/uploader`.
