@@ -20,22 +20,24 @@ sudo docker compose build --no-cache && sudo docker compose up
 
 ## Usage
 
-### Frontend
+### Uploading and Managing Images
 
-For uploading images you will need to access `http://127.0.0.1:8000/uploader`.
+For uploading images you can access the endpoint `/uploader`.
+It provides a simple web GUI for uploading images.
 
-For managing uploaded images you will need to access `http://127.0.0.1:8000/manage`.
-
-The username and password are currently `john` and `matrix`.
+For managing uploaded images you can access the endpoint `/manage`.
+There you will be able to viewm edit and delete currently uploaded images.
 
 ### Backend API
 
-There are two API endpoints needed for accessing the uploaded images:
+There are three API endpoints needed for accessing the uploaded images:
 
 - `GET /` will return a list of JSON objects representing the metadata of the images.
-- `GET /resource?uuid={uuid}` will return an image file from the provided uuid. The uuid can be found in the metadata of the images.
+    It will return all the metadata of unlocked images and the metadata of the image that will be unlocked next.
+- `GET /resource?uuid={uuid}` will return the image file for the provided uuid. The uuid can be found in the metadata of the images.
+- `GET /meta?uuid={uuid}` will return the metadata for one image with the uuid `uuid`.
 
-The fiels in the metadata stand for the following:
+The fields in the metadata stand for the following:
 
 - `uuid`: The uuid linking the metadata to the image file.
     The uuid is created by the backend when the image is uploaded.

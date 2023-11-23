@@ -21,6 +21,7 @@ from werkzeug.datastructures import FileStorage
 from database import (
     delete_image_by_uuid,
     get_all_resources,
+    get_all_unlocked_resources_and_the_next_locked_one,
     get_resource_file,
     get_resource_metadata,
     get_resource_metadata_json,
@@ -31,14 +32,12 @@ from database import (
 from entities import ResourceFile, ResourceMetadata
 from utils import IMAGE_FORMAT_MAPPING, MIMETYPE_MAPPING, thumbnail_image
 
-TMP_FOLDER = "/tmp/farewell"
-
 blueprint_backend = Blueprint("backend", __name__)
 
 
 @blueprint_backend.route("/", methods=["GET"])
 def blueprint_get_all_available_resources():
-    return get_all_resources()
+    return get_all_unlocked_resources_and_the_next_locked_one()
 
 
 @blueprint_backend.route("/meta", methods=["GET"])

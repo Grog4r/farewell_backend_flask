@@ -17,6 +17,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: flask_backend
+    environment:
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
     ports:
       - "8000:8000" # Replace with your app's port
     depends_on:
