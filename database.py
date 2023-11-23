@@ -31,20 +31,35 @@ def store_file(file: ResourceFile) -> dict:
     if _id.inserted_id is not None:
         return file.to_dict()
 
-
-def get_all_resources(only_unlocked: bool, only_locked: bool) -> list:
+def get_all_resources() -> list:
     resource_metadata_collection = db["resource_metadata"]
-    query = {}
-    if only_unlocked:
-        query["unlock_date"] = {"$lte": date.today().isoformat()}
-    if only_locked:
-        query["unlock_date"] = {"$gt": date.today().isoformat()}
-    cursor = resource_metadata_collection.find(query)
+
+    cursor = resource_metadata_collection.find({})
     return_list = []
     for res in cursor:
         json_res = parse_json(res)
         del json_res["_id"]
         return_list.append(json_res)
+    return return_list
+
+
+def get_all_unlocked_resources_and_the_next_locked_one() -> list:
+    resource_metadata_collection = db["resource_metadata"]
+    query = {"unlock_date": {"$lte": date.today().isoformat()}}
+
+    cursor = resource_metadata_collection.find(query, sort=[("unlock_date", 1)])
+    return_list = []
+    for res in cursor:
+        json_res = parse_json(res)
+        del json_res["_id"]
+        return_list.append(json_res)
+
+    query = {"unlock_date": {"$gt": date.today().isoformat()}}
+    next_locked_resource = resource_metadata_collection.find_one(query, sort=[("unlock_date", 1)])
+    print(next_locked_resource, type(next_locked_resource))
+    json_next = parse_json(next_locked_resource)
+    del json_next["_id"]
+    return_list.append(json_next)
     return return_list
 
 

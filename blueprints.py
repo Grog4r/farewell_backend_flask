@@ -21,6 +21,7 @@ from werkzeug.datastructures import FileStorage
 from database import (
     delete_image_by_uuid,
     get_all_resources,
+    get_all_unlocked_resources_and_the_next_locked_one,
     get_resource_file,
     get_resource_metadata,
     get_resource_metadata_json,
@@ -36,15 +37,7 @@ blueprint_backend = Blueprint("backend", __name__)
 
 @blueprint_backend.route("/", methods=["GET"])
 def blueprint_get_all_available_resources():
-    only_unlocked = request.args.get(
-        "only_unlocked", default=False, type=lambda x: x.lower() == "true"
-    )
-    only_locked = request.args.get(
-        "only_locked", default=False, type=lambda x: x.lower() == "true"
-    )
-    if only_unlocked and only_locked:
-        raise ValueError("You cannot set both 'only_locked' and 'only_unlocked' to true.")
-    return get_all_resources(only_unlocked=only_unlocked, only_locked=only_locked)
+    return get_all_unlocked_resources_and_the_next_locked_one()
 
 
 @blueprint_backend.route("/meta", methods=["GET"])
