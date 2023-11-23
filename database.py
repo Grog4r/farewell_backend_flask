@@ -18,23 +18,28 @@ client = pymongo.MongoClient("mongodb://your_username:your_password@mongodb:2701
 db = client["database"]
 
 
-def upload_resource_metadata(resource: ResourceMetadata):
+def upload_resource_metadata(resource: ResourceMetadata) -> dict:
     resource_metadata_collection = db["resource_metadata"]
     _id = resource_metadata_collection.insert_one(resource.to_dict())
     if _id.inserted_id is not None:
         return resource.to_dict()
 
 
-def store_file(file: ResourceFile):
+def store_file(file: ResourceFile) -> dict:
     resource_files_collection = db["resource_files"]
     _id = resource_files_collection.insert_one(file.to_dict())
     if _id.inserted_id is not None:
         return file.to_dict()
 
 
-def get_all_resources():
+def get_all_resources(only_unlocked: bool, only_locked: bool) -> list:
     resource_metadata_collection = db["resource_metadata"]
-    cursor = resource_metadata_collection.find({})
+    query = {}
+    if only_unlocked:
+        query["unlock_date"] = {"$lte": date.today().isoformat()}
+    if only_locked:
+        query["unlock_date"] = {"$gt": date.today().isoformat()}
+    cursor = resource_metadata_collection.find(query)
     return_list = []
     for res in cursor:
         json_res = parse_json(res)
@@ -43,26 +48,26 @@ def get_all_resources():
     return return_list
 
 
-def get_resource_file(uuid: str):
+def get_resource_file(uuid: str) -> dict:
     query = {"uuid": uuid}
     results = db["resource_files"].find(query)
     for result in results:
         return result["file"]
 
 
-def get_resource_metadata(uuid: str):
+def get_resource_metadata(uuid: str) -> dict:
     query = {"uuid": uuid}
     results = db["resource_metadata"].find(query)
     for result in results:
         return result
 
 
-def get_resource_metadata_json(uuid: str):
+def get_resource_metadata_json(uuid: str) -> dict:
     query = {"uuid": uuid}
     result = db["resource_metadata"].find_one(query)
     json_res = parse_json(result)
     del json_res["_id"]
-    
+
     return json_res
 
 
@@ -79,7 +84,9 @@ def update_resource_metadata(
                 "caption": caption,
                 "uploaded_by": uploaded_by,
                 "creation_date": creation_date.isoformat(),
-                "unlock_date": calculate_unlock_date(creation_date, leave_date).isoformat(),
+                "unlock_date": calculate_unlock_date(
+                    creation_date, leave_date
+                ).isoformat(),
             }
         },
     )

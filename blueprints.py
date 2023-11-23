@@ -31,14 +31,20 @@ from database import (
 from entities import ResourceFile, ResourceMetadata
 from utils import IMAGE_FORMAT_MAPPING, MIMETYPE_MAPPING, thumbnail_image
 
-TMP_FOLDER = "/tmp/farewell"
-
 blueprint_backend = Blueprint("backend", __name__)
 
 
 @blueprint_backend.route("/", methods=["GET"])
 def blueprint_get_all_available_resources():
-    return get_all_resources()
+    only_unlocked = request.args.get(
+        "only_unlocked", default=False, type=lambda x: x.lower() == "true"
+    )
+    only_locked = request.args.get(
+        "only_locked", default=False, type=lambda x: x.lower() == "true"
+    )
+    if only_unlocked and only_locked:
+        raise ValueError("You cannot set both 'only_locked' and 'only_unlocked' to true.")
+    return get_all_resources(only_unlocked=only_unlocked, only_locked=only_locked)
 
 
 @blueprint_backend.route("/meta", methods=["GET"])

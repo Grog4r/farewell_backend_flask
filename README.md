@@ -28,14 +28,26 @@ For managing uploaded images you will need to access `http://127.0.0.1:8000/mana
 
 The username and password are currently `john` and `matrix`.
 
-### Backend API
+### Uploading and Managing Images
 
-There are two API endpoints needed for accessing the uploaded images:
+For uploading images you can access the endpoint `/uploader`.
+It provides a simple web GUI for uploading images.
+
+For managing uploaded images you can access the endpoint `/manage`.
+There you will be able to viewm edit and delete currently uploaded images.
+
+### Frontend API
+
+There are three API endpoints needed for accessing the uploaded images:
 
 - `GET /` will return a list of JSON objects representing the metadata of the images.
-- `GET /resource?uuid={uuid}` will return an image file from the provided uuid. The uuid can be found in the metadata of the images.
+    The arg `only_unlocked` can be used to only show the metadata of unlocked images. Defaults to `False`.
+    The arg `only_locked` can be used to only show the metadata of locked images. Defaults to `False`.
+    **Only one of the arguments `only_locked` and `only_unlocked` can be set to true.**
+- `GET /resource?uuid={uuid}` will return the image file for the provided uuid. The uuid can be found in the metadata of the images.
+- `GET /meta?uuid={uuid}` will return the metadata for one image with the uuid `uuid`.
 
-The fiels in the metadata stand for the following:
+The fields in the metadata stand for the following:
 
 - `uuid`: The uuid linking the metadata to the image file.
     The uuid is created by the backend when the image is uploaded.
