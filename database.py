@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import sys
 from datetime import date
 
@@ -13,7 +14,13 @@ from werkzeug.datastructures import FileStorage
 from entities import ResourceFile, ResourceMetadata
 from utils import calculate_unlock_date
 
-client = pymongo.MongoClient("mongodb://your_username:your_password@mongodb:27017/")
+mongodb_connection_url = "mongodb://your_username:your_password@mongodb:27017/"
+mongodb_password = os.environ.get("MONGODB_PASSWORD")
+if mongodb_password:
+    mongodb_connection_url = f"mongodb+srv://niklaskuchenspam:{mongodb_password}@farewellmongodb.zohoneg.mongodb.net/?retryWrites=true&w=majority"
+
+print(f"Connecting to MongoDB at: {mongodb_connection_url.split('@')[1]}", file=sys.stderr)
+client = pymongo.MongoClient(mongodb_connection_url)
 
 db = client["database"]
 
@@ -30,6 +37,7 @@ def store_file(file: ResourceFile) -> dict:
     _id = resource_files_collection.insert_one(file.to_dict())
     if _id.inserted_id is not None:
         return file.to_dict()
+
 
 def get_all_resources() -> list:
     resource_metadata_collection = db["resource_metadata"]
@@ -55,11 +63,14 @@ def get_all_unlocked_resources_and_the_next_locked_one() -> list:
         return_list.append(json_res)
 
     query = {"unlock_date": {"$gt": date.today().isoformat()}}
-    next_locked_resource = resource_metadata_collection.find_one(query, sort=[("unlock_date", 1)])
+    next_locked_resource = resource_metadata_collection.find_one(
+        query, sort=[("unlock_date", 1)]
+    )
     print(next_locked_resource, type(next_locked_resource))
     json_next = parse_json(next_locked_resource)
-    del json_next["_id"]
-    return_list.append(json_next)
+    if json_next:
+        del json_next["_id"]
+        return_list.append(json_next)
     return return_list
 
 
