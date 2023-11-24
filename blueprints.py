@@ -79,6 +79,15 @@ def verify_password(username: str, password: str) -> bool:
     return login_successful
 
 
+@blueprint_backend.route("/auth_api_key", methods=["POST"])
+def auth_api_key():
+    api_key = request.json.get("api_key")
+    if not api_key:
+        raise AuthenticationError("You must provide a valid API Key to validate yourself.")
+    
+    if api_key == os.environ.get("API_KEY"):
+        return jwt.encode({"api_key": api_key}, JWT_SECRET, algorithm="HS256")
+
 @blueprint_backend.route("/get_all_available_resources", methods=["GET"])
 def blueprint_get_all_available_resources():
     if not verify_jwt(request):
