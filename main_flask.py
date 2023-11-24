@@ -2,7 +2,7 @@ import os
 import traceback
 from typing import Tuple
 
-from flask import Flask
+from flask import Flask, render_template
 from flask_cors import CORS
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.exceptions import HTTPException
@@ -64,7 +64,7 @@ def format_error_response(error: Exception, error_code: int) -> Tuple[dict, int]
         "trace": traceback.format_exc(),
         "message": str(error),
     }
-    return response, error_code
+    return render_template("error.html", **response)
 
 
 if __name__ == "__main__":

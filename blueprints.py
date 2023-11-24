@@ -56,6 +56,8 @@ def verify_jwt(request):
             raise AuthenticationError("Your session token seems to be broken!")
     else:
         auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            raise AuthenticationError("You cannot access this without an authorization header!")
         jwt_token = auth_header.split("Bearer ")[1]
         jwt_decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=["HS256"])
         # print(jwt_decoded, file=sys.stderr)
