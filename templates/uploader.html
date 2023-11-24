@@ -29,6 +29,7 @@
 
     <div style="padding: 30px;">
         <h1>Bilder Upload</h1>
+        <h2>Hi, {{name}}!</h2>
         <h3>{{result}}</h3>
     </div>
 
@@ -51,7 +52,7 @@
             <br>
 
             <label for="uploaded_by">Dein Name:</label>
-            <input type="text" name="uploaded_by" required>
+            <input type="text" name="uploaded_by" value="{{name}}" required>
             <br>
 
             <label for="creation_date">Aufnahmedatum (wird in der Regel automatisch gefunden):</label>

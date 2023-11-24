@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 import sys
 from datetime import date, datetime
@@ -15,8 +16,10 @@ from flask import (
     request,
     send_file,
 )
+from flask_httpauth import HTTPBasicAuth
 from PIL import Image
 from werkzeug.datastructures import FileStorage
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import (
     delete_image_by_uuid,
@@ -33,6 +36,30 @@ from entities import ResourceFile, ResourceMetadata
 from utils import IMAGE_FORMAT_MAPPING, MIMETYPE_MAPPING, thumbnail_image
 
 blueprint_backend = Blueprint("backend", __name__)
+
+
+auth = HTTPBasicAuth()
+
+
+@auth.verify_password
+def verify_password(username: str, password: str) -> bool:
+    users = json.loads(os.environ.get("USERS"))
+
+    print(
+        users.keys(),
+        username,
+        users.get(username),
+        generate_password_hash(password),
+        password,
+        file=sys.stderr,
+    )
+    user_password_hash = users[username]
+
+    login_successful = username in users and check_password_hash(
+        users.get(username), password
+    )
+    print(login_successful, file=sys.stderr)
+    return login_successful
 
 
 @blueprint_backend.route("/", methods=["GET"])
@@ -74,6 +101,7 @@ def blueprint_get_resource_file(uuid=None):
 
 
 @blueprint_backend.route("/uploader", methods=["GET", "POST"])
+@auth.login_required
 def uploader():
     if request.method == "POST":
         creation_date = datetime.strptime(
@@ -157,16 +185,20 @@ def uploader():
             )
 
     # If it's a GET request, render the uploader html page
-    return render_template("uploader.html", result="Uploade ein Bild für Flo! 🖼️")
+    return render_template(
+        "uploader.html", result="Uploade ein Bild für Flo! 🖼️", name=auth.current_user(
+    ))
 
 
 @blueprint_backend.route("/manage", methods=["GET"])
+@auth.login_required
 def show_images():
     resources = get_all_resources()
     return render_template("show_images.html", images=resources)
 
 
 @blueprint_backend.route("/edit_image", methods=["GET", "POST"])
+@auth.login_required
 def edit_image(uuid=None):
     if request.method == "POST":
         uuid = request.form.get("uuid")
@@ -195,6 +227,7 @@ def edit_image(uuid=None):
 
 
 @blueprint_backend.route("/delete_image", methods=["DELETE"])
+@auth.login_required
 def delete_image(uuid=None):
     if not uuid:
         uuid = request.args["uuid"]
