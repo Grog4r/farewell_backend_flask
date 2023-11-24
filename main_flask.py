@@ -1,25 +1,20 @@
+import os
 import traceback
 from typing import Tuple
 
-from flask import Flask
-from flask_basicauth import BasicAuth
+from flask import Flask, render_template
 from flask_cors import CORS
+from flask_httpauth import HTTPBasicAuth
 from werkzeug.exceptions import HTTPException
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from blueprints import blueprint_backend
 
 app = Flask(__name__)
 CORS(app)
 
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 app.register_blueprint(blueprint_backend)
-
-enable_basic_auth = False
-
-if enable_basic_auth:
-    app.config["BASIC_AUTH_USERNAME"] = "john"
-    app.config["BASIC_AUTH_PASSWORD"] = "matrix"
-    app.config["BASIC_AUTH_FORCE"] = True
-    basic_auth = BasicAuth(app)
 
 
 @app.errorhandler(HTTPException)
@@ -69,7 +64,7 @@ def format_error_response(error: Exception, error_code: int) -> Tuple[dict, int]
         "trace": traceback.format_exc(),
         "message": str(error),
     }
-    return response, error_code
+    return render_template("error.html", **response)
 
 
 if __name__ == "__main__":

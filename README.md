@@ -22,17 +22,17 @@ sudo docker compose build --no-cache && sudo docker compose up
 
 ### Uploading and Managing Images
 
+For managing uploaded images you can access the endpoint `/`.
+There you will be able to viewm edit and delete currently uploaded images.
+
 For uploading images you can access the endpoint `/uploader`.
 It provides a simple web GUI for uploading images.
-
-For managing uploaded images you can access the endpoint `/manage`.
-There you will be able to viewm edit and delete currently uploaded images.
 
 ### Backend API
 
 There are three API endpoints needed for accessing the uploaded images:
 
-- `GET /` will return a list of JSON objects representing the metadata of the images.
+- `GET /get_all_available_resources` will return a list of JSON objects representing the metadata of the images.
     It will return all the metadata of unlocked images and the metadata of the image that will be unlocked next.
 - `GET /resource?uuid={uuid}` will return the image file for the provided uuid. The uuid can be found in the metadata of the images.
 - `GET /meta?uuid={uuid}` will return the metadata for one image with the uuid `uuid`.

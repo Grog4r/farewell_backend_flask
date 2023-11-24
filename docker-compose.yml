@@ -1,16 +1,16 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: your_username
-      MONGO_INITDB_ROOT_PASSWORD: your_password
-    volumes:
-      - mongodb_data:/data/db
+  # mongodb:
+  #   image: mongo:latest
+  #   container_name: mongodb
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: your_username
+  #     MONGO_INITDB_ROOT_PASSWORD: your_password
+  #   volumes:
+  #     - mongodb_data:/data/db
 
   flask_backend:
     build:
@@ -19,10 +19,14 @@ services:
     container_name: flask_backend
     environment:
       - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - USERS=${USERS}
+      - JWT_SECRET=${JWT_SECRET}
+      - API_KEY=${API_KEY}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
     ports:
       - "8000:8000" # Replace with your app's port
-    depends_on:
-      - mongodb
+    # depends_on:
+    #   - mongodb
 
-volumes:
-  mongodb_data:
+# volumes:
+#   mongodb_data:

@@ -12,7 +12,7 @@
 
 <body>
     <nav class="demo">
-        <a href="#" class="brand">
+        <a class="brand">
             <img class="logo" src="https://cdn-icons-png.flaticon.com/512/2590/2590735.png" />
             <span>Flos Farewell</span>
         </a>
@@ -23,12 +23,13 @@
 
         <div class="menu">
             <a href="/uploader" class="button icon-picture">Bilder uploaden</a>
-            <a href="/manage" class="button icon-puzzle">Bilder ansehen und bearbeiten</a>
+            <a href="/" class="button icon-puzzle">Bilder ansehen und bearbeiten</a>
         </div>
     </nav>
 
     <div style="padding: 30px;">
         <h1>Bilder Upload</h1>
+        <h2>Hi, {{name}}!</h2>
         <h3>{{result}}</h3>
     </div>
 
@@ -51,7 +52,7 @@
             <br>
 
             <label for="uploaded_by">Dein Name:</label>
-            <input type="text" name="uploaded_by" required>
+            <input type="text" name="uploaded_by" value="{{name}}" required>
             <br>
 
             <label for="creation_date">Aufnahmedatum (wird in der Regel automatisch gefunden):</label>

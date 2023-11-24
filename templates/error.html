@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bild bearbeiten</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+</head>
+
+<body>
+    <nav class="demo">
+        <a class="brand">
+            <img class="logo" src="https://cdn-icons-png.flaticon.com/512/2590/2590735.png" />
+            <span>Flos Farewell</span>
+        </a>
+
+        <!-- responsive-->
+        <input id="bmenub" type="checkbox" class="show">
+        <label for="bmenub" class="burger pseudo button">Menu</label>
+
+        <div class="menu">
+            <a href="/uploader" class="button icon-picture">Bilder uploaden</a>
+            <a href="/" class="button icon-puzzle">Bilder ansehen und bearbeiten</a>
+        </div>
+    </nav>
+
+
+    <article class="card" style="margin: 2%; padding: 2%;">
+        <h1>Tut mir leid, da gab es einen Fehler 😥</h1>
+        <h2>{{status_code}}: {{error}}</h2>
+        <h2>{{message}}</h2>
+        <h4>{{trace}}</h4>
+    </article>
+</body>
+
+</html>
