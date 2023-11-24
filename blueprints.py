@@ -177,17 +177,23 @@ def uploader():
         metadata_file_result = store_file(file_resource)
         if metadata_result["uuid"] and metadata_file_result["uuid"]:
             return render_template(
-                "uploader.html", result="Der Upload war erfolgreich! 🥳"
+                "uploader.html",
+                result="Der Upload war erfolgreich! 🥳",
+                name=auth.current_user(),
             )
         else:
             return render_template(
-                "uploader.html", result="Da ist etwas schief gelaufen! 🤯"
+                "uploader.html",
+                result="Da ist etwas schief gelaufen! 🤯",
+                name=auth.current_user(),
             )
 
     # If it's a GET request, render the uploader html page
     return render_template(
-        "uploader.html", result="Uploade ein Bild für Flo! 🖼️", name=auth.current_user(
-    ))
+        "uploader.html",
+        result="Uploade ein Bild für Flo! 🖼️",
+        name=auth.current_user(),
+    )
 
 
 @blueprint_backend.route("/manage", methods=["GET"])
