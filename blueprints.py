@@ -5,6 +5,7 @@ import sys
 from datetime import date, datetime
 from io import BytesIO
 
+import jwt
 from flask import (
     Blueprint,
     Response,
@@ -15,6 +16,7 @@ from flask import (
     render_template,
     request,
     send_file,
+    session,
 )
 from flask_httpauth import HTTPBasicAuth
 from PIL import Image
@@ -40,35 +42,54 @@ blueprint_backend = Blueprint("backend", __name__)
 
 auth = HTTPBasicAuth()
 
+JWT_SECRET = os.environ.get("JWT_SECRET")
+
+
+class AuthenticationError(Exception):
+    pass
+
+
+def verify_jwt(request):
+    if "token" in session:
+        jwt_decoded = jwt.decode(session["token"], JWT_SECRET, algorithms=["HS256"])
+        if not jwt_decoded["user"] in json.loads(os.environ.get("USERS")).keys():
+            raise AuthenticationError("Your session token seems to be broken!")
+    else:
+        auth_header = request.headers.get("Authorization")
+        jwt_token = auth_header.split("Bearer ")[1]
+        jwt_decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=["HS256"])
+        print(jwt_decoded, file=sys.stderr)
+        api_key = os.environ.get("API_KEY")
+        if not jwt_decoded["api_key"] == api_key:
+            raise AuthenticationError("Your JWT Token does not have a valid API Key!")
+    return True
+
 
 @auth.verify_password
 def verify_password(username: str, password: str) -> bool:
     users = json.loads(os.environ.get("USERS"))
 
-    print(
-        users.keys(),
-        username,
-        users.get(username),
-        generate_password_hash(password),
-        password,
-        file=sys.stderr,
-    )
-    user_password_hash = users[username]
-
     login_successful = username in users and check_password_hash(
         users.get(username), password
     )
-    print(login_successful, file=sys.stderr)
+    if login_successful:
+        session["token"] = jwt.encode({"user": username}, JWT_SECRET, algorithm="HS256")
     return login_successful
 
 
 @blueprint_backend.route("/", methods=["GET"])
 def blueprint_get_all_available_resources():
+    if not verify_jwt(request):
+        raise AuthenticationError("Something went wrong with the authentication!")
+
     return get_all_unlocked_resources_and_the_next_locked_one()
 
 
 @blueprint_backend.route("/meta", methods=["GET"])
 def blueprint_get_resource_meta(uuid=None):
+    if not verify_jwt(request):
+        raise AuthenticationError("Something went wrong with the authentication!")
+
     if not uuid:
         uuid = request.args["uuid"]
     if not uuid:
@@ -82,6 +103,9 @@ def blueprint_get_resource_meta(uuid=None):
 
 @blueprint_backend.route("/resource", methods=["GET"])
 def blueprint_get_resource_file(uuid=None):
+    if not verify_jwt(request):
+        raise AuthenticationError("Something went wrong with the authentication!")
+
     if not uuid:
         uuid = request.args["uuid"]
     if not uuid:

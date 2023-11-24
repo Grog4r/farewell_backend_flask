@@ -1,3 +1,4 @@
+import os
 import traceback
 from typing import Tuple
 
@@ -12,6 +13,7 @@ from blueprints import blueprint_backend
 app = Flask(__name__)
 CORS(app)
 
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 app.register_blueprint(blueprint_backend)
 
 
