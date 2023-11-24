@@ -79,7 +79,7 @@ def verify_password(username: str, password: str) -> bool:
     return login_successful
 
 
-@blueprint_backend.route("/", methods=["GET"])
+@blueprint_backend.route("/get_all_available_resources", methods=["GET"])
 def blueprint_get_all_available_resources():
     if not verify_jwt(request):
         raise AuthenticationError("Something went wrong with the authentication!")
@@ -220,7 +220,7 @@ def uploader():
     )
 
 
-@blueprint_backend.route("/manage", methods=["GET"])
+@blueprint_backend.route("/", methods=["GET"])
 @auth.login_required
 def show_images():
     resources = get_all_resources()
@@ -245,7 +245,7 @@ def edit_image(uuid=None):
         image_metadata = update_resource_metadata(
             uuid, title, caption, uploaded_by, creation_date
         )
-        return redirect("/manage")
+        return redirect("/")
     else:
         if not uuid:
             uuid = request.args["uuid"]
@@ -268,4 +268,4 @@ def delete_image(uuid=None):
 
     response_data = {"message": "Image deleted successfully"}
 
-    return jsonify(response_data), 302, {"Location": "/manage"}
+    return jsonify(response_data), 302, {"Location": "/"}
