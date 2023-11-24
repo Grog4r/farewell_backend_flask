@@ -66,7 +66,6 @@ def get_all_unlocked_resources_and_the_next_locked_one() -> list:
     next_locked_resource = resource_metadata_collection.find_one(
         query, sort=[("unlock_date", 1)]
     )
-    print(next_locked_resource, type(next_locked_resource))
     json_next = parse_json(next_locked_resource)
     if json_next:
         del json_next["_id"]

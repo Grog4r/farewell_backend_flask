@@ -58,7 +58,7 @@ def verify_jwt(request):
         auth_header = request.headers.get("Authorization")
         jwt_token = auth_header.split("Bearer ")[1]
         jwt_decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=["HS256"])
-        print(jwt_decoded, file=sys.stderr)
+        # print(jwt_decoded, file=sys.stderr)
         api_key = os.environ.get("API_KEY")
         if not jwt_decoded["api_key"] == api_key:
             raise AuthenticationError("Your JWT Token does not have a valid API Key!")
@@ -111,7 +111,6 @@ def blueprint_get_resource_file(uuid=None):
     if not uuid:
         raise ValueError("Please provide the uuid.")
     image_data = get_resource_file(uuid)
-    print(len(image_data), file=sys.stderr)
     if not image_data:
         raise FileNotFoundError(f"The file with uuid {uuid} does not exist.")
     image_metadata = get_resource_metadata(uuid)
@@ -154,7 +153,6 @@ def uploader():
             "uploaded_by",
         ]
 
-        print(inputs, file=sys.stderr)
 
         for key in required:
             if not inputs[key]:
